@@ -41,6 +41,8 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "users.apps.UsersConfig",
+    "rest_framework",
+    "knox",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -136,3 +138,7 @@ AUTH_USER_MODEL = "users.User"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = "media"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
+}
