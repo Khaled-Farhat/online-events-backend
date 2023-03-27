@@ -12,6 +12,8 @@ class UserSerializer(ModelSerializer):
             "first_name",
             "last_name",
             "avatar",
+            "headline",
+            "bio",
             "password",
         ]
         extra_kwargs = {
