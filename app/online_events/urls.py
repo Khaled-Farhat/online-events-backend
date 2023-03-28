@@ -32,5 +32,6 @@ urlpatterns = [
         name="api-docs",
     ),
     path("api/v1/auth/", include("authentication.api.urls")),
+    path("api/v1/events/", include("events.api.urls")),
     path("api/v1/users/", include("users.api.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
