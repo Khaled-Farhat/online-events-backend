@@ -41,6 +41,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "users.apps.UsersConfig",
+    "events.apps.EventsConfig",
     "rest_framework",
     "knox",
     "drf_spectacular",
