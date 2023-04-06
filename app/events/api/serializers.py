@@ -1,4 +1,5 @@
 from rest_framework.serializers import ModelSerializer
+from rest_framework.exceptions import ValidationError
 from users.models import User
 from ..models import Event
 
@@ -22,7 +23,17 @@ class EventSerializer(ModelSerializer):
             "picture",
             "is_published",
         ]
-        read_only_fields = ["is_published"]
+
+    def validate_is_published(self, value):
+        if (
+            self.instance
+            and self.instance.is_published is True
+            and value is False
+        ):
+            raise ValidationError(
+                "Unpublishing a published event is not allowed."
+            )
+        return value
 
     def create(self, validated_data):
         user = self.context.get("user")
