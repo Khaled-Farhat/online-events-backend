@@ -2,11 +2,25 @@ from rest_framework import (
     pagination,
     viewsets,
 )
+from drf_spectacular.utils import extend_schema_view, extend_schema
 from ..models import Event
 from .permissions import EventPermission
 from .serializers import EventSerializer
 
 
+@extend_schema_view(
+    create=extend_schema(responses={201: EventSerializer, 401: None}),
+    retrieve=extend_schema(
+        responses={200: EventSerializer, 401: None, 403: None}
+    ),
+    update=extend_schema(
+        responses={200: EventSerializer, 401: None, 403: None}
+    ),
+    partial_update=extend_schema(
+        responses={200: EventSerializer, 401: None, 403: None}
+    ),
+    destroy=extend_schema(responses={204: None, 401: None, 403: None}),
+)
 class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
     pagination_class = pagination.LimitOffsetPagination
