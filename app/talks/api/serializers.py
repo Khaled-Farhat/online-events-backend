@@ -6,7 +6,7 @@ from ..models import Talk
 
 
 class TalkSerializer(serializers.ModelSerializer):
-    speaker__username = serializers.SlugRelatedField(
+    speaker = serializers.SlugRelatedField(
         queryset=User.objects.all(), write_only=True, slug_field="username"
     )
 
