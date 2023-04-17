@@ -1,5 +1,6 @@
 from django.utils import timezone
 from rest_framework import serializers, exceptions
+from drf_spectacular.utils import extend_schema_serializer, OpenApiExample
 from users.models import User
 from ..models import Talk
 
@@ -60,3 +61,37 @@ class TalkSpeakerSerializer(serializers.ModelSerializer):
 
 class TalkWithSpeakerDetailSerializer(TalkSerializer):
     speaker = TalkSpeakerSerializer()
+
+
+@extend_schema_serializer(
+    examples=[
+        OpenApiExample(
+            "approve_talk",
+            summary="Approve talk",
+            value={"status": "approved"},
+            request_only=True,
+        ),
+        OpenApiExample(
+            "reject_talk",
+            summary="Reject talk",
+            value={"status": "rejected"},
+            request_only=True,
+        ),
+    ],
+)
+class UpdateTalkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Talk
+        fields = ["status"]
+
+    def validate_status(self, status):
+        if self.instance is not None and (
+            (self.instance.status != "pending" and status == "pending")
+            or (self.instance.status == "rejected" and status == "approved")
+        ):
+            message = (
+                f"Changing status from {self.instance.status} to"
+                f" {status} is not allowed."
+            )
+            raise exceptions.ValidationError(message)
+        return status
