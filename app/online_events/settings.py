@@ -40,8 +40,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "users.apps.UsersConfig",
     "events.apps.EventsConfig",
+    "talks.apps.TalksConfig",
+    "users.apps.UsersConfig",
     "rest_framework",
     "knox",
     "drf_spectacular",
