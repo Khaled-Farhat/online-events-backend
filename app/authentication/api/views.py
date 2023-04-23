@@ -7,14 +7,14 @@ from drf_spectacular.utils import (
 )
 from knox.views import LoginView as KnoxLoginView, LogoutView as KnoxLogoutView
 from users.api.serializers import UserSerializer
-from .serializers import LoginSerializer
+from .serializers import RegisterSerializer, LoginSerializer
 
 
 @extend_schema_view(
-    post=extend_schema(responses={200: UserSerializer, 400: None})
+    post=extend_schema(responses={200: RegisterSerializer, 400: None})
 )
 class RegisterView(generics.CreateAPIView):
-    serializer_class = UserSerializer
+    serializer_class = RegisterSerializer
 
 
 @extend_schema_view(
