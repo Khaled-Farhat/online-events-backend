@@ -1,6 +1,5 @@
 from django.urls import path
-from knox.views import LogoutView
-from .views import LoginView, RegisterView
+from .views import LoginView, RegisterView, LogoutView
 
 urlpatterns = [
     path("login", LoginView.as_view(), name="knox-login"),
