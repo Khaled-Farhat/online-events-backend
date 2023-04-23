@@ -1,17 +1,13 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from users.models import User
 from ..models import Event
 
 
-class EventOrganizerSerializer(ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["id", "username"]
-
-
-class EventSerializer(ModelSerializer):
-    organizer = EventOrganizerSerializer(read_only=True)
+class EventSerializer(serializers.ModelSerializer):
+    organizer = serializers.SlugRelatedField(
+        slug_field="username",
+        read_only=True,
+    )
 
     class Meta:
         model = Event
