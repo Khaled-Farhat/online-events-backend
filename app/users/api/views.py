@@ -6,6 +6,8 @@ from drf_spectacular.utils import (
     extend_schema_view,
     extend_schema,
 )
+from events.models import Event
+from events.api.serializers import EventSerializer
 from talks.models import Talk
 from talks.api.serializers import TalkSerializer
 from ..models import User
@@ -29,6 +31,14 @@ from .permissions import UserPermission
             404: None,
         }
     ),
+    list_organized_events=extend_schema(
+        responses={
+            200: EventSerializer(many=True),
+            401: None,
+            403: None,
+            404: None,
+        }
+    ),
 )
 class UserViewSet(
     mixins.RetrieveModelMixin, mixins.UpdateModelMixin, GenericViewSet
@@ -44,4 +54,12 @@ class UserViewSet(
         user = self.get_object()
         queryset = Talk.objects.filter(speaker=user).all()
         serializer = TalkSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["get"], url_path="organized-events")
+    def list_organized_events(self, request, username):
+        # to do: support filtering event status
+        user = self.get_object()
+        queryset = Event.objects.filter(organizer=user).all()
+        serializer = EventSerializer(queryset, many=True)
         return Response(serializer.data)

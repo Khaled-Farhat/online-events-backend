@@ -5,5 +5,12 @@ class UserPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, user):
         if view.action == "retrieve":
             return True
-        elif view.action in ["update", "partial_update", "list_talks"]:
+        elif view.action in [
+            "update",
+            "partial_update",
+            "list_talks",
+            "list_organized_events",
+        ]:
             return request.user == user
+        else:
+            return False
