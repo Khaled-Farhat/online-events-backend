@@ -1,9 +1,9 @@
 from rest_framework import permissions
 
 
-class IsOwnerOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
+class UserPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, user):
+        if view.action == "retrieve":
             return True
-        else:
-            return obj == request.user
+        elif view.action in ["update", "partial_update", "list_talks"]:
+            return request.user == user

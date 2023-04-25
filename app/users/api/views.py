@@ -1,8 +1,12 @@
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from talks.models import Talk
+from talks.api.serializers import TalkSerializer
 from ..models import User
 from .serializers import UserSerializer
-from .permissions import IsOwnerOrReadOnly
+from .permissions import UserPermission
 
 
 class UserViewSet(
@@ -10,5 +14,13 @@ class UserViewSet(
 ):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [UserPermission]
     lookup_field = "username"
+
+    @action(detail=True, methods=["get"], url_path="talks")
+    def list_talks(self, request, username):
+        # to do: support filtering talk status
+        user = self.get_object()
+        queryset = Talk.objects.filter(speaker=user).all()
+        serializer = TalkSerializer(queryset, many=True)
+        return Response(serializer.data)
