@@ -34,7 +34,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env("ALLOWED_HOSTS").split()
 
 
 # Application definition
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "events.apps.EventsConfig",
     "talks.apps.TalksConfig",
     "users.apps.UsersConfig",
+    "corsheaders",
     "rest_framework",
     "knox",
     "drf_spectacular",
@@ -55,6 +56,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -154,3 +156,6 @@ SPECTACULAR_SETTINGS = {
 }
 
 REST_KNOX = {"AUTH_HEADER_PREFIX": "Bearer"}
+
+CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS").split()
+COSS_ALLOWED_HEADERS = ["Content-Type", "Origin", "Accept"]
