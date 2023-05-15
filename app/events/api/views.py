@@ -57,13 +57,15 @@ class EventViewSet(viewsets.ModelViewSet):
             )
         ],
         responses={
-            200: TalkWithSpeakerDetailSerializer,
+            200: TalkWithSpeakerDetailSerializer(many=True),
             401: None,
             403: None,
             404: None,
         },
     )
-    @action(detail=True, methods=["get"], url_path="talks")
+    @action(
+        detail=True, methods=["get"], url_path="talks", pagination_class=None
+    )
     def list_talks(self, request, pk):
         # to do: add query params include_all (available only for organizer)
         event = self.get_object()
