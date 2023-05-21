@@ -83,7 +83,9 @@ class EventViewSet(viewsets.ModelViewSet):
     @list_talks.mapping.post
     def create_talk(self, request, pk):
         event = self.get_object()
-        serializer = TalkSerializer(data=request.data, context={event: event})
+        serializer = TalkSerializer(
+            data=request.data, context={"event": event}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         headers = self.get_success_headers(serializer.data)
