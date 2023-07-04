@@ -22,6 +22,10 @@ class EventPermission(permissions.BasePermission):
             return event.organizer == request.user and not (
                 event.has_finished()
             )
+        elif view.action == "create_booking":
+            return event.organizer != request.user
+        elif view.action == "destroy_booking":
+            return True
         elif view.action in ["destroy", "publish"]:
             return event.organizer == request.user
         else:

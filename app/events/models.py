@@ -8,7 +8,10 @@ class EventQuerySet(models.QuerySet):
 
 
 class Event(models.Model):
-    organizer = models.ForeignKey(User, on_delete=models.CASCADE)
+    organizer = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="organized_events"
+    )
+    attendees = models.ManyToManyField(User, related_name="booked_events")
     title = models.CharField(max_length=60)
     description = models.TextField(blank=True)
     picture = models.ImageField(blank=True, upload_to="events/pictures")
@@ -19,5 +22,9 @@ class Event(models.Model):
         return self.title
 
     def has_finished(self):
+        # To do
+        return False
+    
+    def has_started(self):
         # To do
         return False

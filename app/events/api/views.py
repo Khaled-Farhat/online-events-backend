@@ -92,3 +92,60 @@ class EventViewSet(viewsets.ModelViewSet):
         return Response(
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
+
+    @extend_schema(
+        description="Idempotent endpoint to book an event. The event should be"
+        " in the future and the user should not be the organizer.",
+        request=None,
+        responses={
+            204: None,
+            400: None,
+            401: None,
+            403: None,
+            404: None,
+            409: None,
+        },
+    )
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="bookings",
+        pagination_class=None,
+    )
+    def create_booking(self, request, pk):
+        event = self.get_object()
+        user = request.user
+
+        if event.has_started():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if event.attendees.filter(pk=request.user.pk).exists():
+            return Response(status=status.HTTP_409_CONFLICT)
+
+        event.attendees.add(user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(
+        description="Idempotent endpoint to cancel event booking."
+        " The event should be in the future and the user should have "
+        "booked the event before",
+        request=None,
+        responses={
+            204: None,
+            401: None,
+            403: None,
+            404: None,
+            409: None,
+        },
+    )
+    @create_booking.mapping.delete
+    def destroy_booking(self, request, pk):
+        event = self.get_object()
+        user = request.user
+
+        if event.has_started():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if not event.attendees.filter(pk=request.user.pk).exists():
+            return Response(status=status.HTTP_409_CONFLICT)
+
+        event.attendees.remove(user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
