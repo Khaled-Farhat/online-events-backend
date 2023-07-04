@@ -1,4 +1,5 @@
-from rest_framework import serializers
+from django.utils import timezone
+from rest_framework import serializers, exceptions
 from rest_framework.exceptions import ValidationError
 from ..models import Event
 
@@ -18,7 +19,15 @@ class EventSerializer(serializers.ModelSerializer):
             "description",
             "picture",
             "is_published",
+            "started_at",
         ]
+
+    def validate_started_at(self, started_at):
+        if started_at < timezone.now():
+            raise exceptions.ValidationError(
+                "started_at field must be in the future."
+            )
+        return started_at
 
     def validate_is_published(self, value):
         if (

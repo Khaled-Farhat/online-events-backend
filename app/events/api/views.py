@@ -78,7 +78,13 @@ class EventViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         request=TalkSerializer,
-        responses={201: TalkSerializer, 401: None, 403: None, 404: None},
+        responses={
+            201: TalkSerializer,
+            400: None,
+            401: None,
+            403: None,
+            404: None,
+        },
     )
     @list_talks.mapping.post
     def create_talk(self, request, pk):

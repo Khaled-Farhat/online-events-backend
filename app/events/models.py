@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from users.models import User
 
 
@@ -8,6 +9,9 @@ class EventQuerySet(models.QuerySet):
 
 
 class Event(models.Model):
+    class Meta:
+        ordering = ("-started_at",)
+
     organizer = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="organized_events"
     )
@@ -16,6 +20,7 @@ class Event(models.Model):
     description = models.TextField(blank=True)
     picture = models.ImageField(blank=True, upload_to="events/pictures")
     is_published = models.BooleanField(default=False)
+    started_at = models.DateTimeField()
     objects = EventQuerySet.as_manager()
 
     def __str__(self):
@@ -24,7 +29,6 @@ class Event(models.Model):
     def has_finished(self):
         # To do
         return False
-    
+
     def has_started(self):
-        # To do
-        return False
+        return self.started_at >= timezone.now()

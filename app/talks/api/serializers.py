@@ -30,7 +30,12 @@ class TalkSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs["start"] > attrs["end"]:
             raise exceptions.ValidationError(
-                "Start time must not exceed end time."
+                "start field must not exceed the end field."
+            )
+        if attrs["start"] < self.context.get("event").started_at:
+            raise exceptions.ValidationError(
+                "start field must be at least the started_at field of the "
+                "event."
             )
         if Talk.objects.filter(
             event=self.context.get("event"),
