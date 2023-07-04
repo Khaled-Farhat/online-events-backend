@@ -63,3 +63,10 @@ class UserViewSet(
         queryset = Event.objects.filter(organizer=user).all()
         serializer = EventSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=["get"], url_path="booked-events")
+    def list_booked_events(self, request, username):
+        user = self.get_object()
+        queryset = user.booked_events.all()
+        serializer = EventSerializer(queryset, many=True)
+        return Response(serializer.data)

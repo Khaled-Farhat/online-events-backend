@@ -10,6 +10,7 @@ class UserPermission(permissions.BasePermission):
             "partial_update",
             "list_talks",
             "list_organized_events",
+            "list_booked_events",
         ]:
             return request.user == user
         else:
