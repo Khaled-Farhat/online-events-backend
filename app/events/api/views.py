@@ -18,7 +18,9 @@ from .serializers import EventSerializer
 
 
 @extend_schema_view(
-    create=extend_schema(responses={201: EventSerializer, 401: None}),
+    create=extend_schema(
+        responses={201: EventSerializer, 400: None, 401: None}
+    ),
     retrieve=extend_schema(
         responses={200: EventSerializer, 401: None, 403: None}
     ),
@@ -99,8 +101,8 @@ class EventViewSet(viewsets.ModelViewSet):
         )
 
     @extend_schema(
-        description="Idempotent endpoint to book an event. The event should be"
-        " in the future and the user should not be the organizer.",
+        description="The event should be in the future and "
+        "the user should not be the organizer.",
         request=None,
         responses={
             204: None,
@@ -130,9 +132,8 @@ class EventViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
-        description="Idempotent endpoint to cancel event booking."
-        " The event should be in the future and the user should have "
-        "booked the event before",
+        description="The event should be in the future and "
+        "the user should have booked the event before",
         request=None,
         responses={
             204: None,
