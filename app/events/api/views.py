@@ -67,7 +67,6 @@ class EventViewSet(viewsets.ModelViewSet):
         detail=True, methods=["get"], url_path="talks", pagination_class=None
     )
     def list_talks(self, request, pk):
-        # to do: add query params include_all (available only for organizer)
         event = self.get_object()
         queryset = Talk.objects.filter(event=event).only_approved()
         include_all = request.query_params.get("include_all", "false")
