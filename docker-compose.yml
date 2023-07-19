@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  nginx:
+    image: online_events_nginx
+    build:
+      context: ./nginx
+      args:
+        ENABLED_MODULES: rtmp
+    ports:
+      - 8080:80
+      - 1935:1935
+    volumes:
+      - storage_data:/var/www/app/storage
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - frontend
+
+  app:
+    build:
+      context: ./app
+      target: prod
+    image: online_events_app_prod
+    volumes:
+      - storage_data:/usr/src/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .app.env
+    environment:
+      - DJANGO_DEBUG=False
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend_db
+
+  db:
+    image: postgres:15.2
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    env_file:
+      - .db.env
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - backend_db
+
+volumes:
+  db_data:
+  storage_data:
+
+networks:
+  frontend:
+  backend_db:

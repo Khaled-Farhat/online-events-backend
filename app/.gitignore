@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 # Media files
-media
+storage

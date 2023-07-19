@@ -8,7 +8,11 @@ class TalkPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, talk):
         if talk.has_started():
             return False
-        elif view.action in ["update", "partial_update"]:
+        elif view.action in [
+            "update",
+            "partial_update",
+            "retrieve_stream_key",
+        ]:
             return request.user == talk.speaker
         elif view.action == "destroy":
             return talk.event.organizer == request.user

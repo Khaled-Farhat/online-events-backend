@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: ./app
+      target: dev
+    command: python3 manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./app:/usr/src/app
+      - /usr/src/app/.venv
+    environment:
+      - DJANGO_DEBUG=True

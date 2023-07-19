@@ -16,7 +16,7 @@ import os
 
 env = environ.Env(
     # set casting, default value
-    DEBUG=(bool, False)
+    DJANGO_DEBUG=(bool, False)
 )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,12 +29,12 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG")
+DEBUG = env("DJANGO_DEBUG")
 
-ALLOWED_HOSTS = env("ALLOWED_HOSTS").split()
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split()
 
 
 # Application definition
@@ -91,10 +91,11 @@ WSGI_APPLICATION = "online_events.wsgi.application"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": env.db_url("DJANGO_DATABASE_URL"),
+    # "default": {
+    #     "ENGINE": "django.db.backends.sqlite3",
+    #     "NAME": BASE_DIR / "db.sqlite3",
+    # }
 }
 
 
@@ -141,8 +142,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
-MEDIA_URL = "media/"
-MEDIA_ROOT = "media"
+MEDIA_URL = "storage/media/"
+MEDIA_ROOT = BASE_DIR / "storage/media"
+
+STATIC_URL = "storage/static/"
+STATIC_ROOT = BASE_DIR / "storage/static"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
@@ -157,5 +161,9 @@ SPECTACULAR_SETTINGS = {
 
 REST_KNOX = {"AUTH_HEADER_PREFIX": "Bearer"}
 
-CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS").split()
+CORS_ALLOWED_ORIGINS = env("DJANGO_CORS_ALLOWED_ORIGINS").split()
 COSS_ALLOWED_HEADERS = ["Content-Type", "Origin", "Accept"]
+
+CSRF_TRUSTED_ORIGINS = env("DJANGO_CSRF_TRUSTED_ORIGINS").split()
+
+STREAM_APPLICATION_BASE_URL = env("STREAM_APPLICATION_BASE_URL")
