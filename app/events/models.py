@@ -31,4 +31,4 @@ class Event(models.Model):
         return False
 
     def has_started(self):
-        return self.started_at >= timezone.now()
+        return self.started_at <= timezone.now()
