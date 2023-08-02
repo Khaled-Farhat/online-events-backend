@@ -9,8 +9,7 @@ services:
     build:
       context: ./app
       target: dev
-    entrypoint: python3
-    command: manage.py runserver 0.0.0.0:8000
+    entrypoint: ./entrypoint-dev.sh
     volumes:
       - ./app:/usr/src/app
       - /usr/src/app/.venv

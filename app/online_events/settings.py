@@ -180,3 +180,8 @@ CHANNEL_LAYERS = {
     },
 }
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
+
+if DEBUG:
+    INSTALLED_APPS = ["silk"] + INSTALLED_APPS
+    MIDDLEWARE = ["silk.middleware.SilkyMiddleware"] + MIDDLEWARE
