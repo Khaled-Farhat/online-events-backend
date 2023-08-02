@@ -2,6 +2,7 @@ from django.utils import timezone
 from rest_framework import serializers, exceptions
 from drf_spectacular.utils import extend_schema_serializer, OpenApiExample
 from users.models import User
+from events.models import Event
 from ..models import Talk
 
 
@@ -67,6 +68,26 @@ class TalkSpeakerSerializer(serializers.ModelSerializer):
 
 class TalkWithSpeakerDetailSerializer(TalkSerializer):
     speaker = TalkSpeakerSerializer()
+
+
+class TalkEventSerializer(serializers.ModelSerializer):
+    organizer = serializers.SlugRelatedField(
+        slug_field="username",
+        read_only=True,
+    )
+
+    class Meta:
+        model = Event
+        fields = [
+            "id",
+            "organizer",
+            "title",
+            "started_at",
+        ]
+
+
+class TalkWithEventDetailSerializer(TalkSerializer):
+    event = TalkEventSerializer()
 
 
 @extend_schema_serializer(

@@ -13,7 +13,7 @@ from drf_spectacular.types import OpenApiTypes
 from events.models import Event
 from events.api.serializers import EventSerializer
 from talks.models import Talk
-from talks.api.serializers import TalkSerializer
+from talks.api.serializers import TalkWithEventDetailSerializer
 from ..models import User, ChatKey
 from .serializers import UserSerializer
 from .permissions import UserPermission
@@ -28,12 +28,21 @@ from .permissions import UserPermission
         responses={200: UserSerializer, 401: None, 403: None, 404: None}
     ),
     list_talks=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="status",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                default=None,
+                description="Filter talk status (pending/approved/rejected)",
+            )
+        ],
         responses={
-            200: TalkSerializer(many=True),
+            200: TalkWithEventDetailSerializer(many=True),
             401: None,
             403: None,
             404: None,
-        }
+        },
     ),
     list_organized_events=extend_schema(
         responses={
@@ -69,17 +78,6 @@ class UserViewSet(
     permission_classes = [UserPermission]
     lookup_field = "username"
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="status",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                default=None,
-                description="Filter talk status (pending/approved/rejected)",
-            )
-        ],
-    )
     @action(detail=True, methods=["get"], url_path="talks")
     def list_talks(self, request, username):
         user = self.get_object()
@@ -87,7 +85,7 @@ class UserViewSet(
         status_param = request.query_params.get("status", None)
         if status_param is not None:
             queryset = queryset.filter(status=status_param)
-        serializer = TalkSerializer(queryset, many=True)
+        serializer = TalkWithEventDetailSerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"], url_path="organized-events")
