@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import pagination, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -31,6 +32,21 @@ from .serializers import EventSerializer
         responses={200: EventSerializer, 401: None, 403: None}
     ),
     destroy=extend_schema(responses={204: None, 401: None, 403: None}),
+    list=extend_schema(
+        description="Retrieve the published events, "
+        "ordered by decreasing order of started_at.",
+        parameters=[
+            OpenApiParameter(
+                name="only_upcoming",
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                default=False,
+                description="Include only the upcoming events. "
+                "The events will be ordered in "
+                "increasing order of started_at.",
+            )
+        ],
+    ),
 )
 class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
@@ -39,7 +55,17 @@ class EventViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.action == "list":
-            return Event.objects.is_published()
+            queryset = Event.objects.is_published()
+
+            only_upcoming = self.request.query_params.get(
+                "only_upcoming", "false"
+            )
+            if only_upcoming == "true":
+                queryset = queryset.filter(
+                    started_at__gte=timezone.now()
+                ).order_by("started_at")
+
+            return queryset
         else:
             return Event.objects.all()
 
