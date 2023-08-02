@@ -81,7 +81,9 @@ class UserViewSet(
     @action(detail=True, methods=["get"], url_path="talks")
     def list_talks(self, request, username):
         user = self.get_object()
-        queryset = Talk.objects.filter(speaker=user)
+        queryset = Talk.objects.filter(speaker=user).select_related(
+            "event", "event__organizer"
+        )
         status_param = request.query_params.get("status", None)
         if status_param is not None:
             queryset = queryset.filter(status=status_param)
