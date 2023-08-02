@@ -124,9 +124,15 @@ class EventViewSet(viewsets.ModelViewSet):
         user = request.user
 
         if event.has_started():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"detail": "Event has started."},
+            )
         if event.attendees.filter(pk=request.user.pk).exists():
-            return Response(status=status.HTTP_409_CONFLICT)
+            return Response(
+                status=status.HTTP_409_CONFLICT,
+                data={"detail": "You have already booked this event."},
+            )
 
         event.attendees.add(user)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -149,9 +155,15 @@ class EventViewSet(viewsets.ModelViewSet):
         user = request.user
 
         if event.has_started():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"detail": "Event has started."},
+            )
         if not event.attendees.filter(pk=request.user.pk).exists():
-            return Response(status=status.HTTP_409_CONFLICT)
+            return Response(
+                status=status.HTTP_409_CONFLICT,
+                data={"detail": "You have not booked this event before."},
+            )
 
         event.attendees.remove(user)
         return Response(status=status.HTTP_204_NO_CONTENT)
