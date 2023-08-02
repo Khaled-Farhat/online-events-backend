@@ -1,5 +1,7 @@
 #!/bin/bash
 
+python3 manage.py migrate
+
 python3 manage.py collectstatic --no-input --clear
 
 gunicorn online_events.wsgi:application \

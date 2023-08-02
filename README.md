@@ -16,12 +16,6 @@
 
 `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
 
-#### Migrate the database
-
-`docker compose exec -it app bash`
-
-`python3 manage.py migrate`
-
 #### Stopping the containers
 
 `docker compose down`
