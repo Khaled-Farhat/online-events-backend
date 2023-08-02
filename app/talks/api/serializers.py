@@ -38,6 +38,7 @@ class TalkSerializer(serializers.ModelSerializer):
                 "event."
             )
         if Talk.objects.filter(
+            status__in=["pending", "approved"],
             event=self.context.get("event"),
             start__lt=attrs["end"],
             end__gt=attrs["start"],
