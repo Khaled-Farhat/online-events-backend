@@ -31,6 +31,58 @@ from .serializers import EventSerializer
         responses={200: EventSerializer, 401: None, 403: None}
     ),
     destroy=extend_schema(responses={204: None, 401: None, 403: None}),
+    list_talks=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="include_all",
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                default=False,
+                description="Include pending and rejected talks.",
+            )
+        ],
+        responses={
+            200: TalkWithSpeakerDetailSerializer(many=True),
+            401: None,
+            403: None,
+            404: None,
+        },
+    ),
+    create_talk=extend_schema(
+        request=TalkSerializer,
+        responses={
+            201: TalkSerializer,
+            400: None,
+            401: None,
+            403: None,
+            404: None,
+        },
+    ),
+    create_booking=extend_schema(
+        description="The event should be in the future and "
+        "the user should not be the organizer.",
+        request=None,
+        responses={
+            204: None,
+            400: None,
+            401: None,
+            403: None,
+            404: None,
+            409: None,
+        },
+    ),
+    destroy_booking=extend_schema(
+        description="The event should be in the future and "
+        "the user should have booked the event before",
+        request=None,
+        responses={
+            204: None,
+            401: None,
+            403: None,
+            404: None,
+            409: None,
+        },
+    ),
 )
 class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
@@ -48,23 +100,6 @@ class EventViewSet(viewsets.ModelViewSet):
         context["user"] = self.request.user
         return context
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="include_all",
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-                default=False,
-                description="Include pending and rejected talks.",
-            )
-        ],
-        responses={
-            200: TalkWithSpeakerDetailSerializer(many=True),
-            401: None,
-            403: None,
-            404: None,
-        },
-    )
     @action(
         detail=True, methods=["get"], url_path="talks", pagination_class=None
     )
@@ -77,16 +112,6 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer = TalkWithSpeakerDetailSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @extend_schema(
-        request=TalkSerializer,
-        responses={
-            201: TalkSerializer,
-            400: None,
-            401: None,
-            403: None,
-            404: None,
-        },
-    )
     @list_talks.mapping.post
     def create_talk(self, request, pk):
         event = self.get_object()
@@ -100,19 +125,6 @@ class EventViewSet(viewsets.ModelViewSet):
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
-    @extend_schema(
-        description="The event should be in the future and "
-        "the user should not be the organizer.",
-        request=None,
-        responses={
-            204: None,
-            400: None,
-            401: None,
-            403: None,
-            404: None,
-            409: None,
-        },
-    )
     @action(
         detail=True,
         methods=["post"],
@@ -137,18 +149,6 @@ class EventViewSet(viewsets.ModelViewSet):
         event.attendees.add(user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @extend_schema(
-        description="The event should be in the future and "
-        "the user should have booked the event before",
-        request=None,
-        responses={
-            204: None,
-            401: None,
-            403: None,
-            404: None,
-            409: None,
-        },
-    )
     @create_booking.mapping.delete
     def destroy_booking(self, request, pk):
         event = self.get_object()
