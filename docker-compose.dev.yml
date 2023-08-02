@@ -1,13 +1,22 @@
 version: "3.8"
 
 services:
-  app:
+  nginx:
+    environment:
+      - DJANGO_WSGI=django-asgi:8000
+
+  django-asgi:
     build:
       context: ./app
       target: dev
-    command: python3 manage.py runserver 0.0.0.0:8000
+    entrypoint: python3
+    command: manage.py runserver 0.0.0.0:8000
     volumes:
       - ./app:/usr/src/app
       - /usr/src/app/.venv
     environment:
       - DJANGO_DEBUG=True
+
+  django-wsgi:
+    deploy:
+      replicas: 0

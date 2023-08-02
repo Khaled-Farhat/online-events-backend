@@ -13,20 +13,26 @@ services:
     volumes:
       - storage_data:/var/www/app/storage
     depends_on:
-      - app
+      - django-wsgi
+      - django-asgi
+    environment:
+      - DJANGO_ASGI=django-asgi:8000
+      - DJANGO_WSGI=django-wsgi:8000
     restart: unless-stopped
     networks:
       - frontend
 
-  app:
+  django-asgi: &app
     build:
       context: ./app
       target: prod
-    image: online_events_app_prod
+    entrypoint: ./entrypoint-asgi.sh
     volumes:
       - storage_data:/usr/src/app/storage
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     env_file:
       - .app.env
@@ -35,7 +41,22 @@ services:
     restart: unless-stopped
     networks:
       - frontend
+      - backend_redis
       - backend_db
+
+  django-wsgi:
+    <<: *app
+    entrypoint: ./entrypoint-wsgi.sh
+
+  redis:
+    image: redis:7.0.12
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    networks:
+      - backend_redis
 
   db:
     image: postgres:15.2
@@ -58,4 +79,5 @@ volumes:
 
 networks:
   frontend:
+  backend_redis:
   backend_db:

@@ -84,6 +84,8 @@ RUN set -ex \
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log
 
+COPY http.conf.template /etc/nginx/templates/http.conf.template
+COPY rtmp.conf.template /etc/nginx/templates/rtmp.conf.template
 COPY nginx.conf /etc/nginx/nginx.conf
 
 CMD ["nginx", "-g", "daemon off;"]

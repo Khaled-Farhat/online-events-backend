@@ -40,6 +40,8 @@ ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split()
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    "chats.apps.ChatsConfig",
     "events.apps.EventsConfig",
     "talks.apps.TalksConfig",
     "users.apps.UsersConfig",
@@ -167,3 +169,14 @@ COSS_ALLOWED_HEADERS = ["Content-Type", "Origin", "Accept"]
 CSRF_TRUSTED_ORIGINS = env("DJANGO_CSRF_TRUSTED_ORIGINS").split()
 
 STREAM_APPLICATION_BASE_URL = env("STREAM_APPLICATION_BASE_URL")
+
+ASGI_APPLICATION = "online_events.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(env("REDIS_HOST"), env("REDIS_PORT"))],
+        },
+    },
+}
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None

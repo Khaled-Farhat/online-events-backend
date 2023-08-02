@@ -48,7 +48,6 @@ RUN poetry install --no-root --without main \
     && rm -rf "$POETRY_CACHE_DIR"
 
 USER app
-CMD ["./entrypoint.sh"]
 
 
 
@@ -59,7 +58,7 @@ FROM base as prod
 # Copy the virtual environment and the code
 COPY --from=builder $VITRUAL_ENVIRONMENT_PATH $VITRUAL_ENVIRONMENT_PATH
 COPY . .
-RUN chmod +x "$PROJECT_PATH/entrypoint.sh"
+RUN chmod +x "$PROJECT_PATH/entrypoint-wsgi.sh" \
+    && chmod +x "$PROJECT_PATH/entrypoint-asgi.sh"
 
 USER app
-ENTRYPOINT ["./entrypoint.sh"]

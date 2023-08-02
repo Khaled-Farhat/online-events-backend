@@ -1,10 +1,12 @@
+from django.utils import timezone
 from rest_framework.viewsets import GenericViewSet
-from rest_framework import mixins
+from rest_framework import mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.utils import (
     extend_schema_view,
     extend_schema,
+    inline_serializer,
     OpenApiParameter,
 )
 from drf_spectacular.types import OpenApiTypes
@@ -12,7 +14,7 @@ from events.models import Event
 from events.api.serializers import EventSerializer
 from talks.models import Talk
 from talks.api.serializers import TalkSerializer
-from ..models import User
+from ..models import User, ChatKey
 from .serializers import UserSerializer
 from .permissions import UserPermission
 
@@ -40,6 +42,23 @@ from .permissions import UserPermission
             403: None,
             404: None,
         }
+    ),
+    retrieve_chat_key=extend_schema(
+        request=None,
+        responses={
+            200: inline_serializer(
+                "chat-key-serializer",
+                fields={
+                    "chat_key": serializers.CharField(),
+                    "expiry": serializers.DateTimeField(),
+                },
+            ),
+            401: None,
+            403: None,
+            404: None,
+        },
+        description="Retrieve a chat-key to be used in chats."
+        "The key is intended to be temporal, so it will have a short expiry.",
     ),
 )
 class UserViewSet(
@@ -85,3 +104,13 @@ class UserViewSet(
         queryset = user.booked_events.all()
         serializer = EventSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=["get"], url_path="chat-key")
+    def retrieve_chat_key(self, request, username):
+        user = self.get_object()
+        expiry = timezone.timedelta(minutes=10)
+        instance, token = ChatKey.objects.create(user, expiry)
+        return Response(
+            status=status.HTTP_200_OK,
+            data={"chat_key": token, "expiry": instance.expiry},
+        )
