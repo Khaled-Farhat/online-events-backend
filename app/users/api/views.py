@@ -1,4 +1,5 @@
 from django.utils import timezone
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status, serializers
 from rest_framework.decorators import action
@@ -52,6 +53,14 @@ from .permissions import UserPermission
             404: None,
         }
     ),
+    list_booked_events=extend_schema(
+        responses={
+            200: EventSerializer(many=True),
+            401: None,
+            403: None,
+            404: None,
+        }
+    ),
     retrieve_chat_key=extend_schema(
         request=None,
         responses={
@@ -76,34 +85,40 @@ class UserViewSet(
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [UserPermission]
+    pagination_class = LimitOffsetPagination
     lookup_field = "username"
 
     @action(detail=True, methods=["get"], url_path="talks")
     def list_talks(self, request, username):
         user = self.get_object()
+
         queryset = Talk.objects.filter(speaker=user).select_related(
             "event", "event__organizer"
         )
         status_param = request.query_params.get("status", None)
         if status_param is not None:
             queryset = queryset.filter(status=status_param)
-        serializer = TalkWithEventDetailSerializer(queryset, many=True)
-        return Response(serializer.data)
+
+        page = self.paginate_queryset(queryset)
+        serializer = TalkWithEventDetailSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=["get"], url_path="organized-events")
     def list_organized_events(self, request, username):
         # to do: support filtering event status
         user = self.get_object()
         queryset = Event.objects.filter(organizer=user).all()
-        serializer = EventSerializer(queryset, many=True)
-        return Response(serializer.data)
+        page = self.paginate_queryset(queryset)
+        serializer = EventSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=["get"], url_path="booked-events")
     def list_booked_events(self, request, username):
         user = self.get_object()
         queryset = user.booked_events.all()
-        serializer = EventSerializer(queryset, many=True)
-        return Response(serializer.data)
+        page = self.paginate_queryset(queryset)
+        serializer = EventSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=["get"], url_path="chat-key")
     def retrieve_chat_key(self, request, username):
