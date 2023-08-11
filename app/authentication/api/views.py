@@ -131,7 +131,6 @@ class StreamAuthViewSet(GenericViewSet):
             serializer.is_valid(raise_exception=True)
             return Response(status=200, data={"code": 0, "msg": "OK"})
         except APIException as e:
-            print(e.detail)
             return Response(
                 status=e.status_code, data={"code": 0, "msg": e.detail}
             )
