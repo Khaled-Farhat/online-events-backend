@@ -2,9 +2,7 @@
 
 #### Set the environment variables
 
-`cp .app.env.example .app.env`
-
-`cp .db.env.example .db.env`
+`cp -r .env.example/ .env/`
 
 #### Run for production
 
