@@ -12,6 +12,7 @@ class UserPermission(permissions.BasePermission):
             "list_organized_events",
             "list_booked_events",
             "retrieve_chat_key",
+            "retrieve_play_stream_key",
         ]:
             return request.user == user
         else:

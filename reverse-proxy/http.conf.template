@@ -12,31 +12,7 @@ http {
             alias /var/www/app/storage/;
         }
 
-        location = /auth {
-            internal;
-            proxy_pass http://${DJANGO_WSGI}/api/v1/auth/stream?talk_id=$talk_id;
-            proxy_pass_request_body off;
-            proxy_set_header Content-Length "";
-            proxy_set_header X-Original-URI $request_uri;
-            proxy_set_header Authorization $http_authorization;
-        }
-
-        location ~ ^/live/(\d+).(\w+) {
-            set $talk_id $1;
-            auth_request /auth;
-            auth_request_set $auth_status $upstream_status;
-
-            add_header Access-Control-Allow-Origin *;
-            add_header Cache-Control no-cache;
-
-            types {
-                application/vnd.apple.mpegurl m3u8;
-                video/mp2t ts;
-            }
-
-            root /tmp;
-        }
-
+        # Django Channels for WebSocket
         location /ws {
             proxy_pass http://${DJANGO_ASGI};
 
@@ -45,6 +21,24 @@ http {
             proxy_set_header Connection $connection_upgrade;
             proxy_set_header Host $http_host;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        # HTTP API Server for WebRTC
+        location /rtc {
+            proxy_pass http://${RTC_API};
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Referer "";
+            proxy_redirect off;
+        }
+
+        # HTTP live streaming server for HLS
+        location /live {
+            proxy_pass http://${HLS_SERVER};
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Referer "";
+            proxy_redirect off;
         }
 
         location / {

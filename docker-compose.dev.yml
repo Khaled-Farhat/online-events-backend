@@ -1,9 +1,13 @@
 version: "3.8"
 
 services:
-  nginx:
+  reverse-proxy:
     environment:
       - DJANGO_WSGI=django-asgi:8000
+
+  streaming:
+    ports:
+      - 8081:1985 # HTTP API server, for HTTP-API, WebRTC.
 
   django-asgi:
     build:

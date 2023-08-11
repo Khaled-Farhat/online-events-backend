@@ -1,26 +1,27 @@
 from django.contrib.auth import login
-from django.http import Http404, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-from django.conf import settings
 from rest_framework import (
     generics,
     serializers,
     permissions,
-    views,
-    status,
-    response,
 )
+from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 from drf_spectacular.utils import (
     extend_schema_view,
     extend_schema,
     inline_serializer,
-    OpenApiParameter,
 )
-from drf_spectacular.types import OpenApiTypes
 from knox.views import LoginView as KnoxLoginView, LogoutView as KnoxLogoutView
 from users.api.serializers import UserSerializer
-from talks.models import Talk
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import (
+    RegisterSerializer,
+    LoginSerializer,
+    StreamSerializer,
+    PublishStreamSerializer,
+    PlayStreamSerializer,
+)
 
 
 @extend_schema_view(
@@ -65,68 +66,72 @@ class LogoutView(KnoxLogoutView):
     pass
 
 
-class RTMPAllowedRedirect(HttpResponseRedirect):
-    allowed_schemes = ["rtmp"]
+docs_stream_serializer = inline_serializer(
+    name="stream-publish-serializer",
+    fields={
+        "code": serializers.IntegerField(),
+        "msg": serializers.CharField(),
+    },
+)
 
 
 @extend_schema_view(
-    post=extend_schema(
-        description="Endpoint called by the nginx server for authorizing"
-        " the streamer.",
-        request=inline_serializer(
-            name="push-stream-serializer",
-            fields={
-                "name": serializers.IntegerField(
-                    help_text="Name of the stream"
-                    "(secret stream key for the talk)"
-                )
-            },
-        ),
-        responses={302: None, 403: None, 404: None},
+    publish=extend_schema(
+        description="Returns 200 with code 0 if the user is allowed to"
+        " publish the stream."
+        " The talk should be approved and ongoing, the event should"
+        " be published, and the token should be a talk stream-key"
+        " obtained by the talk speaker."
+        " SRS service uses this endpoint to authenticate and"
+        " authorize the user.",
+        responses={
+            200: docs_stream_serializer,
+            401: docs_stream_serializer,
+            403: docs_stream_serializer,
+            404: docs_stream_serializer,
+        },
     ),
-    get=extend_schema(
-        description="Endpoint called by the nginx server for authorizing"
-        " the consumer.",
-        parameters=[
-            OpenApiParameter(
-                name="name",
-                type=OpenApiTypes.INT,
-                location=OpenApiParameter.QUERY,
-                description="Stream name (talk id)",
-            )
-        ],
-        responses={204: None, 403: None, 404: None},
+    play=extend_schema(
+        description="Returns 200 with code 0 if the user is allowed to"
+        " play the stream."
+        " The talk should be approved and ongoing, and the event should"
+        " be published, and the token should be a play-stream-token"
+        " for a user that has booked the event or for the organizer."
+        " SRS service uses this endpoint to authenticate and"
+        " authorize the user.",
+        responses={
+            200: docs_stream_serializer,
+            401: docs_stream_serializer,
+            403: docs_stream_serializer,
+            404: docs_stream_serializer,
+        },
     ),
 )
-class StreamView(views.APIView):
-    def post(self, request, format=None):
-        try:
-            stream_key = request.data["name"]
-            talk = get_object_or_404(Talk, stream_key=stream_key)
-        except KeyError:
-            raise Http404
+class StreamAuthViewSet(GenericViewSet):
+    serializer_class = StreamSerializer
 
-        if not (talk.has_started()) or talk.has_finished():
-            return response.Response(
-                status=status.HTTP_403_FORBIDDEN,
+    def get_serializer_class(self):
+        if self.action == "publish":
+            return PublishStreamSerializer
+        elif self.action == "play":
+            return PlayStreamSerializer
+        return self.serializer_class
+
+    @action(detail=False, methods=["post"], url_path="publish")
+    def publish(self, request):
+        return self.run_serializer(request)
+
+    @action(detail=False, methods=["post"], url_path="play")
+    def play(self, request):
+        return self.run_serializer(request)
+
+    def run_serializer(self, request):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            return Response(status=200, data={"code": 0, "msg": "OK"})
+        except APIException as e:
+            print(e.detail)
+            return Response(
+                status=e.status_code, data={"code": 0, "msg": e.detail}
             )
-
-        return RTMPAllowedRedirect(
-            redirect_to=f"{settings.STREAM_APPLICATION_BASE_URL}/{talk.id}"
-        )
-
-    def get(self, request, format=None):
-        try:
-            talk_id = request.query_params.get("talk_id", None)
-            talk = get_object_or_404(Talk, id=talk_id)
-        except KeyError:
-            raise Http404
-
-        if (
-            not (talk.event.attendees.filter(pk=request.user.pk).exists())
-            or not (talk.has_started())
-            or talk.has_finished()
-        ):
-            return response.Response(status=status.HTTP_403_FORBIDDEN)
-
-        return response.Response(status=status.HTTP_204_NO_CONTENT)

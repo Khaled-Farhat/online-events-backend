@@ -15,7 +15,7 @@ from events.models import Event
 from events.api.serializers import EventSerializer
 from talks.models import Talk
 from talks.api.serializers import TalkWithEventDetailSerializer
-from ..models import User, ChatKey
+from ..models import User, ChatKey, PlayStreamKey
 from .serializers import UserSerializer
 from .permissions import UserPermission
 
@@ -78,6 +78,21 @@ from .permissions import UserPermission
         description="Retrieve a chat-key to be used in chats."
         "The key is intended to be temporal, so it will have a short expiry.",
     ),
+    retrieve_play_stream_key=extend_schema(
+        request=None,
+        responses={
+            200: inline_serializer(
+                "play-stream-key-serializer",
+                fields={
+                    "play_stream_key": serializers.CharField(),
+                    "expiry": serializers.DateTimeField(),
+                },
+            ),
+            401: None,
+            403: None,
+            404: None,
+        },
+    ),
 )
 class UserViewSet(
     mixins.RetrieveModelMixin, mixins.UpdateModelMixin, GenericViewSet
@@ -128,4 +143,14 @@ class UserViewSet(
         return Response(
             status=status.HTTP_200_OK,
             data={"chat_key": token, "expiry": instance.expiry},
+        )
+
+    @action(detail=True, methods=["get"], url_path="play-stream-key")
+    def retrieve_play_stream_key(self, request, username):
+        user = self.get_object()
+        expiry = timezone.timedelta(minutes=10)
+        instance, token = PlayStreamKey.objects.create(user, expiry)
+        return Response(
+            status=status.HTTP_200_OK,
+            data={"play_stream_key": token, "expiry": instance.expiry},
         )

@@ -1,24 +1,33 @@
 version: "3.8"
 
 services:
-  nginx:
-    image: online_events_nginx
+  reverse-proxy:
     build:
-      context: ./nginx
-      args:
-        ENABLED_MODULES: rtmp
+      context: ./reverse-proxy
     ports:
       - 8080:80
-      - 1935:1935
     volumes:
       - storage_data:/var/www/app/storage
     depends_on:
       - django-wsgi
       - django-asgi
+      - streaming
     environment:
       - DJANGO_ASGI=django-asgi:8000
       - DJANGO_WSGI=django-wsgi:8000
+      - RTC_API=streaming:1985
+      - HLS_SERVER=streaming:8080
     restart: unless-stopped
+    networks:
+      - frontend
+
+  streaming:
+    build:
+      context: ./streaming
+    ports:
+      - 8000:8000/udp # WebRTC Media server.
+    env_file:
+      - .streaming.env
     networks:
       - frontend
 

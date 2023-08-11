@@ -11,3 +11,7 @@ class User(AbstractUser):
 
 class ChatKey(AuthToken):
     pass
+
+
+class PlayStreamKey(AuthToken):
+    pass
