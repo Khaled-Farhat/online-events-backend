@@ -86,28 +86,23 @@ class TestUserEndpoints:
         )
         assert response.data == expected_response_data
 
-    def test_update_user(self, send_request):
+    def test_update_user(self, send_request, get_user_representation):
         user = UserFactory.create()
+        data = UserFactory.build()
+
         url = reverse("user-detail", kwargs={"username": user.username})
-        payload = dict(
-            {
-                "username": user.username,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "headline": user.headline,
-                "bio": user.bio,
-                "password": "newpassword",
-            }
-        )
+        payload = get_user_representation(data)
+        payload["password"] = "newpassword"
         response = send_request(url, "put", payload, user)
+
         expected_response_data = payload
         expected_response_data.pop("password")
         expected_response_data["avatar"] = user.avatar.url
+
         assert response.status_code == 200
         assert response.data == expected_response_data
         assert (
-            authenticate(username=user.username, password="newpassword")
+            authenticate(username=data.username, password="newpassword")
             == user
         )
 
@@ -123,24 +118,23 @@ class TestUserEndpoints:
             "password",
         ],
     )
-    def test_partial_update_user(self, field, send_request):
+    def test_partial_update_user(
+        self, field, send_request, get_user_representation
+    ):
         user = UserFactory.create()
+        data = UserFactory.build()
+
         url = reverse("user-detail", kwargs={"username": user.username})
-        data = dict(
-            {
-                "username": user.username,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "headline": user.headline,
-                "bio": user.bio,
-                "password": "newpassword",
-            }
-        )
+        data = get_user_representation(data)
+        data["password"] = "newpassword"
         response = send_request(url, "patch", {field: data.get(field)}, user)
-        expected_response_data = data
-        expected_response_data.pop("password")
-        expected_response_data["avatar"] = user.avatar.url
+
+        expected_response_data = get_user_representation(
+            user, include_avatar=True
+        )
+        if field != "password":
+            expected_response_data[field] = data[field]
+
         assert response.status_code == 200
         assert response.data == expected_response_data
         if field == "password":
