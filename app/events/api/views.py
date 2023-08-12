@@ -71,6 +71,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
+        context.pop("request")  # To return a relative picture URI
         context["user"] = self.request.user
         return context
 
