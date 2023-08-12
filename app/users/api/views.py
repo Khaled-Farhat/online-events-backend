@@ -103,6 +103,11 @@ class UserViewSet(
     pagination_class = LimitOffsetPagination
     lookup_field = "username"
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.pop("request")  # To return a relative avatar URI
+        return context
+
     @action(detail=True, methods=["get"], url_path="talks")
     def list_talks(self, request, username):
         user = self.get_object()
