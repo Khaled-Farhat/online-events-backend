@@ -58,7 +58,8 @@ FROM base as prod
 # Copy the virtual environment and the code
 COPY --from=builder $VITRUAL_ENVIRONMENT_PATH $VITRUAL_ENVIRONMENT_PATH
 COPY . .
-RUN chmod +x "$PROJECT_PATH/entrypoint-wsgi.sh" \
+RUN rm -rf "$PROJECT_PATH/tests" \
+    && chmod +x "$PROJECT_PATH/entrypoint-wsgi.sh" \
     && chmod +x "$PROJECT_PATH/entrypoint-asgi.sh" \
     && chmod +x "$PROJECT_PATH/entrypoint-dev.sh"
 
