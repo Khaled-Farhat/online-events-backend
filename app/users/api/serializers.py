@@ -26,6 +26,7 @@ class UserSerializer(ModelSerializer):
                 "required": True,
             },
             "password": {
+                "required": False,
                 "write_only": True,
             },
         }
