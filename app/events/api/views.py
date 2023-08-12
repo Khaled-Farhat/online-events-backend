@@ -143,6 +143,7 @@ class EventViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=["post"],
         url_path="bookings",
+        url_name="booking-list",
         pagination_class=None,
     )
     def create_booking(self, request, pk):
