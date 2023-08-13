@@ -173,8 +173,6 @@ COSS_ALLOWED_HEADERS = ["Content-Type", "Origin", "Accept"]
 
 CSRF_TRUSTED_ORIGINS = env("DJANGO_CSRF_TRUSTED_ORIGINS").split()
 
-STREAM_APPLICATION_BASE_URL = env("STREAM_APPLICATION_BASE_URL")
-
 ASGI_APPLICATION = "online_events.asgi.application"
 CHANNEL_LAYERS = {
     "default": {
