@@ -1,1 +1,1 @@
-import online_events.schema
+import online_events.schema  # noqa: F401
