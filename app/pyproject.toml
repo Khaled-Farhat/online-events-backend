@@ -25,7 +25,17 @@ channels-redis = "^4.1.0"
 django-silk = "^5.0.3"
 pytest-django = "^4.5.2"
 factory-boy = "^3.3.0"
+black = "^23.7.0"
+flake8 = "^6.1.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 79
+extend-exclude = '''
+/(
+  | migrations
+)/
+'''
