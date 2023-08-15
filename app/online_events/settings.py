@@ -34,7 +34,7 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DJANGO_DEBUG")
 
-ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS").split()
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", default="").split()
 
 
 # Application definition
@@ -168,17 +168,22 @@ SPECTACULAR_SETTINGS = {
 
 REST_KNOX = {"AUTH_HEADER_PREFIX": "Bearer"}
 
-CORS_ALLOWED_ORIGINS = env("DJANGO_CORS_ALLOWED_ORIGINS").split()
+CORS_ALLOWED_ORIGINS = env("DJANGO_CORS_ALLOWED_ORIGINS", default="").split()
 COSS_ALLOWED_HEADERS = ["Content-Type", "Origin", "Accept"]
 
-CSRF_TRUSTED_ORIGINS = env("DJANGO_CSRF_TRUSTED_ORIGINS").split()
+CSRF_TRUSTED_ORIGINS = env("DJANGO_CSRF_TRUSTED_ORIGINS", default="").split()
 
 ASGI_APPLICATION = "online_events.asgi.application"
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(env("REDIS_HOST"), env("REDIS_PORT"))],
+            "hosts": [
+                (
+                    env("REDIS_HOST", default=None),
+                    env("REDIS_PORT", default=None),
+                )
+            ],
         },
     },
 }
