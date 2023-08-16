@@ -10,6 +10,7 @@ services:
       - 8081:1985 # HTTP API server, for HTTP-API, WebRTC.
 
   django-asgi:
+    image: online-events/app-dev
     build:
       context: ./app
       target: dev
