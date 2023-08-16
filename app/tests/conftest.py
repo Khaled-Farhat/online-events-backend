@@ -1,5 +1,6 @@
 import pytest
 from rest_framework.test import APIClient
+from rest_framework.serializers import DateTimeField
 
 
 @pytest.fixture
@@ -22,3 +23,11 @@ def send_request(api_client):
         return response
 
     return send_request
+
+
+@pytest.fixture
+def get_datetime_representation():
+    def get_datetime_representation(datatime_field):
+        return DateTimeField().to_representation(datatime_field)
+
+    return get_datetime_representation

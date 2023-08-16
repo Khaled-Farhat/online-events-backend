@@ -1,5 +1,4 @@
 import pytest
-from rest_framework.serializers import DateTimeField
 from .factories import EventFactory
 
 
@@ -11,14 +10,6 @@ def published_event():
 @pytest.fixture
 def unpublished_event():
     return EventFactory.create(is_published=False)
-
-
-@pytest.fixture
-def get_datetime_representation():
-    def get_datetime_representation(datatime_field):
-        return DateTimeField().to_representation(datatime_field)
-
-    return get_datetime_representation
 
 
 @pytest.fixture

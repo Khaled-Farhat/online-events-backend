@@ -3,8 +3,12 @@ from django.utils import timezone
 from django.urls import reverse
 from tests.users.factories import UserFactory
 from tests.events.factories import EventFactory
+from tests.talks.factories import TalkFactory
+from tests.talks.conftest import get_talk_representation
+from events.models import Event
 
 pytestmark = pytest.mark.django_db
+__all__ = ["get_talk_representation"]
 
 
 class TestEventEndpoints:
@@ -154,6 +158,21 @@ class TestEventEndpoints:
         url = reverse("event-booking-list", kwargs={"pk": event.pk})
         response = send_request(url, method, user=user)
         assert response.status_code == 400
+
+    def test_when_not_organizer_then_create_event_talk_should_fail(
+        self, published_event, send_request
+    ):
+        url = reverse("event-list-talks", kwargs={"pk": published_event.pk})
+        response = send_request(url, "post", user=UserFactory.create())
+        assert response.status_code == 403
+
+    def test_when_not_organizer_filter_event_talks_should_fail(
+        self, unpublished_event, send_request
+    ):
+        url = reverse("event-list-talks", kwargs={"pk": unpublished_event.pk})
+        url = f"{url}?include_all=true"
+        response = send_request(url, "get", user=UserFactory.create())
+        assert response.status_code == 403
 
     def test_list_events(self, send_request):
         EventFactory.create_batch(3, is_published=True)
@@ -317,3 +336,58 @@ class TestEventEndpoints:
         # test cannot destroy event booking twice
         response = send_request(url, "delete", user=user)
         assert response.status_code == 409
+
+    def test_list_published_event_talks(self, published_event, send_request):
+        TalkFactory.create_batch(3, event=published_event, status="approved")
+        TalkFactory.create_batch(2, event=published_event, status="rejected")
+        TalkFactory.create_batch(1, event=published_event, status="pending")
+
+        url = reverse("event-list-talks", kwargs={"pk": published_event.pk})
+        response = send_request(url, "get")
+
+        assert response.status_code == 200
+        assert len(response.data) == 3
+
+    def test_filter_event_talks(self, published_event, send_request):
+        TalkFactory.create_batch(3, event=published_event, status="approved")
+        TalkFactory.create_batch(2, event=published_event, status="rejected")
+        TalkFactory.create_batch(1, event=published_event, status="pending")
+
+        base_url = reverse(
+            "event-list-talks", kwargs={"pk": published_event.pk}
+        )
+
+        url = f"{base_url}?include_all=true"
+        response = send_request(url, "get", user=published_event.organizer)
+        assert response.status_code == 200
+        assert len(response.data) == 6
+
+        url = f"{base_url}?include_all=false"
+        response = send_request(url, "get", user=published_event.organizer)
+        assert response.status_code == 200
+        assert len(response.data) == 3
+
+    def test_create_event_talk(
+        self, unpublished_event, send_request, get_talk_representation
+    ):
+        talk = TalkFactory.build(
+            speaker=UserFactory.create(),
+            event=unpublished_event,
+            start=timezone.now() + timezone.timedelta(hours=1),
+            end=timezone.now() + timezone.timedelta(hours=2),
+            status="pending",
+        )
+
+        url = reverse("event-list-talks", kwargs={"pk": unpublished_event.pk})
+        payload = get_talk_representation(talk, include_speaker=True)
+        response = send_request(
+            url, "post", payload, user=unpublished_event.organizer
+        )
+
+        assert response.status_code == 201
+        expected_response_data = get_talk_representation(
+            talk, include_event=True, include_status=True
+        )
+        response.data.pop("id")
+        assert response.data == expected_response_data
+        assert len(Event.objects.all()) == 1
