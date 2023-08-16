@@ -16,10 +16,10 @@ def api_client():
 
 @pytest.fixture
 def send_request(api_client):
-    def send_request(url, method, data=None, user=None):
+    def send_request(url, method, data=None, user=None, **kwargs):
         client = api_client(user)
         request = getattr(client, method)
-        response = request(url, data, format="json")
+        response = request(url, data, format="json", **kwargs)
         return response
 
     return send_request

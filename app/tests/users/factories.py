@@ -9,6 +9,7 @@ class UserFactory(DjangoModelFactory):
         model = User
 
     username = Faker("user_name")
+    email = Faker("email")
     headline = Faker("text", max_nb_chars=60)
     email = Faker("email")
     bio = Faker("paragraph")
