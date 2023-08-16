@@ -50,6 +50,11 @@ class RegisterView(generics.CreateAPIView):
 class LoginView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
 
+    def get_context(self):
+        context = super().get_context()
+        context.pop("request")  # To return a relative avatar URI
+        return context
+
     def get_user_serializer_class(self):
         return UserSerializer
 
