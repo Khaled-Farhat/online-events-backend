@@ -2,6 +2,7 @@ import pytest
 from django.urls import reverse
 from tests.users.factories import UserFactory
 from django.contrib.auth import authenticate
+from tests.events.factories import EventFactory
 
 
 pytestmark = pytest.mark.django_db
@@ -156,3 +157,29 @@ class TestUserEndpoints:
         response = send_request(url, "get", user=user)
         assert response.status_code == 200
         assert type(response.data[key_name]) is str
+
+    def test_list_user_booked_events(self, send_request):
+        events = EventFactory.create_batch(3)
+        user = UserFactory.create()
+        for event in events:
+            event.attendees.add(user.pk)
+
+        url = reverse(
+            "user-list-booked-events", kwargs={"username": user.username}
+        )
+        response = send_request(url, "get", user=user)
+
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 3
+
+    def test_list_user_organized_events(self, send_request):
+        user = UserFactory.create()
+        EventFactory.create_batch(3, organizer=user)
+
+        url = reverse(
+            "user-list-organized-events", kwargs={"username": user.username}
+        )
+        response = send_request(url, "get", user=user)
+
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 3
