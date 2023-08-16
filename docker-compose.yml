@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
   reverse-proxy:
+    image: ${IMAGES_PREFIX-online-events}/reverse-proxy:${IMAGES_TAG-latest}
     build:
       context: ./reverse-proxy
     ports:
@@ -22,6 +23,7 @@ services:
       - frontend
 
   streaming:
+    image: ${IMAGES_PREFIX-online-events}/streaming:${IMAGES_TAG-latest}
     build:
       context: ./streaming
     ports:
@@ -32,6 +34,7 @@ services:
       - frontend
 
   django-asgi: &app
+    image: ${IMAGES_PREFIX-online-events}/app:${IMAGES_TAG-latest}
     build:
       context: ./app
       target: prod

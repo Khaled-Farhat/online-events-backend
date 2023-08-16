@@ -1,0 +1,118 @@
+stages:
+  - test
+  - analysis
+  - build
+  - scan
+  - deploy
+
+include:
+  - template: SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/Container-Scanning.gitlab-ci.yml
+
+.django-default-template:
+  before_script:
+    - pip install poetry==1.4.2
+    - poetry config virtualenvs.in-project true
+    - cd app
+    - touch README.md && poetry install --no-interaction
+
+tests:
+  extends: 
+    - .django-default-template
+  stage: test
+  image: python:3.10.11
+  services:
+    - name: postgres:15.2
+      alias: db
+  script:
+    - poetry run pytest
+  variables:
+    DJANGO_SETTINGS_MODULE: online_events.settings
+    DJANGO_SECRET_KEY: SECRET
+    DJANGO_DEBUG: "True"
+    DJANGO_DATABASE_URL: psql://django_user:password@db:5432/django_db
+    DJANGO_ALLOWED_HOSTS: "*"
+    POSTGRES_DB: django_db
+    POSTGRES_USER: django_user
+    POSTGRES_PASSWORD: password
+
+lint:
+  extends: 
+    - .django-default-template
+  stage: test
+  image: python:3.10.11
+  script:
+    - poetry run black --check .
+    - poetry run flake8 .
+
+secret_detection:
+  stage: analysis
+  variables:
+    SECRET_DETECTION_EXCLUDED_PATHS: ".env.example"
+
+semgrep-sast:
+  stage: analysis
+
+build:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+  stage: build
+  image: docker:24.0.2
+  services:
+    - name: docker:24.0.2-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    IMAGES_PREFIX: $CI_REGISTRY_IMAGE
+    IMAGES_TAG: $CI_PIPELINE_IID
+  before_script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY_IMAGE --password-stdin
+    - cp -r .env.example/ .env/
+  script:
+    - docker compose -f docker-compose.yml build --progress plain
+    - docker compose -f docker-compose.yml push
+
+container_scanning:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+  stage: scan
+  variables:
+    CS_IMAGE: $CI_REGISTRY_IMAGE/reverse-proxy:$CI_PIPELINE_IID
+
+container_scanning 2/3:
+  extends: container_scanning
+  variables:
+    CS_IMAGE: $CI_REGISTRY_IMAGE/streaming:$CI_PIPELINE_IID
+
+container_scanning 3/2:
+  extends: container_scanning
+  variables:
+    CS_IMAGE: $CI_REGISTRY_IMAGE/app:$CI_PIPELINE_IID
+
+deploy:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+  when: manual
+  stage: deploy
+  image: docker:24.0.2
+  variables:
+    CI_REGISTRY_IMAGE: $CI_REGISTRY_IMAGE
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    IMAGES_PREFIX: $CI_REGISTRY_IMAGE
+    IMAGES_TAG: $CI_PIPELINE_IID
+  before_script:
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY_IMAGE --password-stdin
+    - wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+    - chmod a+x /usr/local/bin/yq
+    - cp -r .env.example/ .env/
+  script:
+    # Delete the depends_on key because
+    # 1. It is not compatible with docker stack deploy
+    # 2. It is ignored when deploying a stack using docker swarm mode
+    - yq e 'del(.services[].depends_on)' docker-compose.yml > deploy.yml
+    - docker stack deploy swarm_deploy_test -c deploy.yml --with-registry-auth
