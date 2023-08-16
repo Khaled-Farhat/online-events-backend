@@ -95,8 +95,7 @@ container_scanning 3/2:
 deploy:
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
-      when: on_success
-  when: manual
+      when: manual
   stage: deploy
   image: docker:24.0.2
   variables:
