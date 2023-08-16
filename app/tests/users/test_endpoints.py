@@ -3,6 +3,7 @@ from django.urls import reverse
 from tests.users.factories import UserFactory
 from django.contrib.auth import authenticate
 from tests.events.factories import EventFactory
+from tests.talks.factories import TalkFactory
 
 
 pytestmark = pytest.mark.django_db
@@ -183,3 +184,35 @@ class TestUserEndpoints:
 
         assert response.status_code == 200
         assert len(response.data["results"]) == 3
+
+    def test_list_user_talks(self, send_request):
+        user = UserFactory.create()
+        TalkFactory.create_batch(3, speaker=user)
+
+        url = reverse("user-list-talks", kwargs={"username": user.username})
+        response = send_request(url, "get", user=user)
+
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 3
+
+    def test_filter_user_talks(self, send_request):
+        user = UserFactory.create()
+        data = [
+            {"status": "pending", "count": 3},
+            {"status": "approved", "count": 2},
+            {"status": "rejected", "count": 1},
+        ]
+        for element in data:
+            TalkFactory.create_batch(
+                element["count"], speaker=user, status=element["status"]
+            )
+
+        base_url = reverse(
+            "user-list-talks", kwargs={"username": user.username}
+        )
+
+        for element in data:
+            url = f"{base_url}?status={element['status']}"
+            response = send_request(url, "get", user=user)
+            assert response.status_code == 200
+            assert len(response.data["results"]) == element["count"]
