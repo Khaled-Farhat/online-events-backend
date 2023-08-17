@@ -38,7 +38,7 @@ services:
     build:
       context: ./app
       target: prod
-    entrypoint: ./entrypoint-asgi.sh
+    entrypoint: ./entrypoints/entrypoint-asgi.sh
     volumes:
       - storage_data:/usr/src/app/storage
     depends_on:
@@ -58,7 +58,7 @@ services:
 
   django-wsgi:
     <<: *app
-    entrypoint: ./entrypoint-wsgi.sh
+    entrypoint: ./entrypoints/entrypoint-wsgi.sh
 
   redis:
     image: redis:7.0.12

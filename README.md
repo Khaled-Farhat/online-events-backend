@@ -10,7 +10,7 @@
 
 #### Run for development
 
-`chmod +x app/entrypoint-dev.sh`
+`chmod +x app/entrypoints/entrypoint-dev.sh`
 
 `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
 

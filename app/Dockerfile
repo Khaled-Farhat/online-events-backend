@@ -59,8 +59,8 @@ FROM base as prod
 COPY --from=builder $VITRUAL_ENVIRONMENT_PATH $VITRUAL_ENVIRONMENT_PATH
 COPY . .
 RUN rm -rf "$PROJECT_PATH/tests" \
-    && chmod +x "$PROJECT_PATH/entrypoint-wsgi.sh" \
-    && chmod +x "$PROJECT_PATH/entrypoint-asgi.sh" \
-    && chmod +x "$PROJECT_PATH/entrypoint-dev.sh"
+    && chmod +x "$PROJECT_PATH/entrypoints/entrypoint-wsgi.sh" \
+    && chmod +x "$PROJECT_PATH/entrypoints/entrypoint-asgi.sh" \
+    && chmod +x "$PROJECT_PATH/entrypoints/entrypoint-dev.sh"
 
 USER app

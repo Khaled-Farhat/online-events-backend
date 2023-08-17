@@ -14,7 +14,7 @@ services:
     build:
       context: ./app
       target: dev
-    entrypoint: ./entrypoint-dev.sh
+    entrypoint: ./entrypoints/entrypoint-dev.sh
     volumes:
       - ./app:/usr/src/app
       - /usr/src/app/.venv
