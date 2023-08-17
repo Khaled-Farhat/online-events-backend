@@ -11,6 +11,24 @@ __all__ = ["get_user_representation"]
 
 
 class TestAuthEndpoints:
+    def test_when_username_is_not_unique_then_register_should_fail(
+        self, send_request
+    ):
+        UserFactory.create(username="username")
+        user = UserFactory.build(username="username")
+
+        url = reverse("user-register")
+        payload = {
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "password": "password",
+        }
+        response = send_request(url, "post", payload)
+
+        assert response.status_code == 400
+
     def test_login_logout(self, send_request, get_user_representation):
         user = UserFactory.create()
 
