@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate
 from django.db.models import Q
 from rest_framework import serializers, exceptions
-from online_events.utils import ModelPluggableTokenAuthentication
+from core.utils import ModelPluggableTokenAuthentication
 from events.models import Event
 from talks.models import Talk
 from users.models import PlayStreamKey
