@@ -15,7 +15,9 @@ class Event(models.Model):
     organizer = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="organized_events"
     )
-    attendees = models.ManyToManyField(User, related_name="booked_events")
+    attendees = models.ManyToManyField(
+        User, related_name="booked_events", blank=True
+    )
     title = models.CharField(max_length=60)
     description = models.TextField(blank=True)
     picture = models.ImageField(blank=True, upload_to="events/pictures")
