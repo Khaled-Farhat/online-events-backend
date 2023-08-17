@@ -52,18 +52,15 @@ class StreamSerializer(serializers.Serializer):
         self.talk = get_object_or_404(
             Talk, Q(status="approved", event__is_published=True), pk=stream
         )
-        if not self.talk.has_started():
-            message = "Talk has not started"
-            raise serializers.ValidationError(message)
-        elif self.talk.has_finished():
-            message = "Talk has finished"
-            raise serializers.ValidationError(message)
+        if self.talk.has_finished() or not self.talk.has_started():
+            raise exceptions.PermissionDenied()
         return stream_url
 
     def validate_param(self, param):
         message = "Invalid query string"
         if len(param) == 0:
             self.query_params = ""
+            self.validate_token()
             return param
         if param[0] == "?":
             param = param[1:]
