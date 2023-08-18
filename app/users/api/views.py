@@ -16,7 +16,7 @@ from events.api.serializers import EventSerializer
 from talks.models import Talk
 from talks.api.serializers import TalkWithEventDetailSerializer
 from ..models import User, ChatKey, PlayStreamKey
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UpdateUserSerializer
 from .permissions import UserPermission
 
 
@@ -107,6 +107,12 @@ class UserViewSet(
         context = super().get_serializer_context()
         context.pop("request")  # To return a relative avatar URI
         return context
+
+    def get_serializer_class(self):
+        if self.action in ["update", "partial_update"]:
+            return UpdateUserSerializer
+        else:
+            return self.serializer_class
 
     @action(detail=True, methods=["get"], url_path="talks")
     def list_talks(self, request, username):

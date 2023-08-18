@@ -70,6 +70,41 @@ class TestUserEndpoints:
         response = send_request(url, method, user=UserFactory.create())
         assert response.status_code == 404
 
+    def test_username_email_fields_are_ignored_in_update_user(
+        self, send_request, get_user_representation
+    ):
+        user = UserFactory.create(
+            username="first_username", email="first@example.com"
+        )
+        data = UserFactory.build(
+            username="second_username", email="second@email.com"
+        )
+
+        url = reverse("user-detail", kwargs={"username": user.username})
+        payload = get_user_representation(data)
+        response = send_request(url, "put", payload, user=user)
+
+        assert response.status_code == 200
+        assert response.data["username"] == user.username
+        assert response.data["email"] == user.email
+
+    @pytest.mark.parametrize("field", ["username", "email"])
+    def test_username_email_fields_are_ignored_in_partial_update_user(
+        self, field, send_request
+    ):
+        user = UserFactory.create(
+            username="first_username", email="first@example.com"
+        )
+        data = UserFactory.build(
+            username="second_username", email="second@example.com"
+        )
+
+        url = reverse("user-detail", kwargs={"username": user.username})
+        payload = {field: getattr(data, field)}
+        response = send_request(url, "patch", payload, user=user)
+        assert response.status_code == 200
+        assert response.data[field] == getattr(user, field)
+
     def test_retrieve_user(self, send_request):
         user = UserFactory.create()
         url = reverse("user-detail", kwargs={"username": user.username})
@@ -90,15 +125,17 @@ class TestUserEndpoints:
 
     def test_update_user(self, send_request, get_user_representation):
         user = UserFactory.create()
-        data = UserFactory.build()
+        data = UserFactory.build(username=user.username, email=user.email)
+        representation = get_user_representation(data)
 
         url = reverse("user-detail", kwargs={"username": user.username})
-        payload = get_user_representation(data)
+        payload = representation.copy()
+        payload.pop("username")
+        payload.pop("email")
         payload["password"] = "newpassword"
         response = send_request(url, "put", payload, user)
 
-        expected_response_data = payload
-        expected_response_data.pop("password")
+        expected_response_data = representation
         expected_response_data["avatar"] = user.avatar.url
 
         assert response.status_code == 200
@@ -111,8 +148,6 @@ class TestUserEndpoints:
     @pytest.mark.parametrize(
         "field",
         [
-            "username",
-            "email",
             "first_name",
             "last_name",
             "headline",

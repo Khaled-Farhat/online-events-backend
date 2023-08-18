@@ -1,8 +1,8 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 from ..models import User
 
 
-class UserSerializer(ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
@@ -39,3 +39,8 @@ class UserSerializer(ModelSerializer):
             instance.set_password(validated_data["password"])
             validated_data.pop("password")
         return super().update(instance, validated_data)
+
+
+class UpdateUserSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        read_only_fields = ["username", "email"]
