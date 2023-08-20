@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import environ
 import os
+from datetime import timedelta
 
 env = environ.Env(
     # set casting, default value
@@ -198,7 +199,15 @@ EMAIL_USE_TLS = env("EMAIL_USE_TLS", default=True)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
 
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=None)
+
+CELERY_CONF_BROKER_URL = env("CELERY_BROKER_URL", default=None)
+CELERY_CONF_BEAT_SCHEDULE = {
+    "clean_expired_tokens_every_day": {
+        "task": "users__clean_expired_tokens",
+        "schedule": timedelta(days=1),
+    },
+}
+
 
 if DEBUG:
     INSTALLED_APPS = ["silk"] + INSTALLED_APPS

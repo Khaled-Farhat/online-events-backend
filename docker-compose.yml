@@ -64,6 +64,10 @@ services:
     <<: *app
     entrypoint: ./entrypoints/entrypoint-celery-worker.sh
 
+  celery-beat:
+    <<: *app
+    entrypoint: ./entrypoints/entrypoint-celery-beat.sh
+
   redis:
     image: redis:7.0.12
     healthcheck:

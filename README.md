@@ -12,7 +12,7 @@
 
 `chmod +x app/entrypoints/entrypoint-dev.sh`
 
-`chmod +x app/entrypoints/entrypoint-celery-worker.sh`
+`chmod +x app/entrypoints/entrypoint-dev-celery.sh`
 
 `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
 

@@ -27,4 +27,8 @@ services:
 
   celery-worker:
     <<: *app
-    entrypoint: ./entrypoints/entrypoint-celery-worker.sh
+    entrypoint: ./entrypoints/entrypoint-dev-celery.sh
+
+  celery-beat:
+    deploy:
+      replicas: 0
