@@ -41,6 +41,7 @@ ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", default="").split()
 
 INSTALLED_APPS = [
     "daphne",
+    "auth.apps.AuthConfig",
     "chats.apps.ChatsConfig",
     "events.apps.EventsConfig",
     "talks.apps.TalksConfig",
@@ -189,6 +190,15 @@ CHANNEL_LAYERS = {
 }
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
+FRONTEND_VERIFY_EMAIL_URL = env("FRONTEND_VERIFY_EMAIL_URL", default=None)
+
+EMAIL_HOST = env("EMAIL_HOST", default=None)
+EMAIL_PORT = env("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default=None)
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default=None)
+
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=None)
 
 if DEBUG:
     INSTALLED_APPS = ["silk"] + INSTALLED_APPS

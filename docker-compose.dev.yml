@@ -9,7 +9,7 @@ services:
     ports:
       - 8081:1985 # HTTP API server, for HTTP-API, WebRTC.
 
-  django-asgi:
+  django-asgi: &app
     image: online-events/app-dev
     build:
       context: ./app
@@ -24,3 +24,7 @@ services:
   django-wsgi:
     deploy:
       replicas: 0
+
+  celery-worker:
+    <<: *app
+    entrypoint: ./entrypoints/entrypoint-celery-worker.sh

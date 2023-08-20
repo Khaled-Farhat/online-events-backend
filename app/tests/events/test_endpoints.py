@@ -159,6 +159,24 @@ class TestEventEndpoints:
         response = send_request(url, method, user=user)
         assert response.status_code == 400
 
+    def test_when_speaker_is_not_verified_then_create_event_talk_should_fail(
+        self, published_event, send_request, get_talk_representation
+    ):
+        talk = TalkFactory.build(
+            speaker=UserFactory.create(is_verified=False),
+            event=published_event,
+            start=timezone.now() + timezone.timedelta(hours=1),
+            end=timezone.now() + timezone.timedelta(hours=2),
+            status="pending",
+        )
+
+        payload = get_talk_representation(talk, include_speaker=True)
+        url = reverse("event-list-talks", kwargs={"pk": published_event.pk})
+        response = send_request(
+            url, "post", payload, user=published_event.organizer
+        )
+        assert response.status_code == 400
+
     def test_when_not_organizer_then_create_event_talk_should_fail(
         self, published_event, send_request
     ):

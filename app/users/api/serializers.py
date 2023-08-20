@@ -31,6 +31,12 @@ class UserSerializer(serializers.ModelSerializer):
             },
         }
 
+    def validate_email(self, email):
+        if User.verified_objects.filter(email=email).exists():
+            message = "Email already exists."
+            raise serializers.ValidationError(message, code="authorization")
+        return email
+
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
 

@@ -12,6 +12,8 @@
 
 `chmod +x app/entrypoints/entrypoint-dev.sh`
 
+`chmod +x app/entrypoints/entrypoint-celery-worker.sh`
+
 `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
 
 #### Stopping the containers

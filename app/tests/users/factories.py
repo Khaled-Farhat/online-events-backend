@@ -15,3 +15,4 @@ class UserFactory(DjangoModelFactory):
     bio = Faker("paragraph")
     avatar = Faker("file_extension", category="image")
     password = PostGenerationMethodCall("set_password", "password")
+    is_verified = True

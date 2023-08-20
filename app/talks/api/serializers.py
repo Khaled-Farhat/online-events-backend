@@ -8,7 +8,9 @@ from ..models import Talk
 
 class TalkSerializer(serializers.ModelSerializer):
     speaker = serializers.SlugRelatedField(
-        queryset=User.objects.all(), write_only=True, slug_field="username"
+        queryset=User.verified_objects.all(),
+        write_only=True,
+        slug_field="username",
     )
 
     class Meta:

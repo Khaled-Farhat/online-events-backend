@@ -1,6 +1,7 @@
 import pytest
+from django.urls import reverse
 from django.utils import timezone
-from users.models import PlayStreamKey
+from users.models import PlayStreamKey, VerificationKey
 from tests.events.factories import EventFactory
 from tests.talks.factories import TalkFactory
 from tests.users.factories import UserFactory
@@ -46,3 +47,38 @@ def play_stream_key():
         return token
 
     return play_stream_key
+
+
+@pytest.fixture
+def email_verification_key():
+    def email_verification_key(user):
+        _, token = VerificationKey.objects.create(user)
+        return token
+
+    return email_verification_key
+
+
+@pytest.fixture
+def send_register_request(send_request):
+    def send_register_request(user):
+        url = reverse("user-register")
+        payload = {
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "password": "password",
+        }
+        return send_request(url, "post", payload)
+
+    return send_register_request
+
+
+@pytest.fixture
+def send_verify_email_request(send_request):
+    def send_verify_email_request(verificatoin_key):
+        url = reverse("verification-verify-email")
+        payload = {"verification_key": verificatoin_key}
+        return send_request(url, "post", payload)
+
+    return send_verify_email_request

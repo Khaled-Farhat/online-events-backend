@@ -31,3 +31,16 @@ def get_datetime_representation():
         return DateTimeField().to_representation(datatime_field)
 
     return get_datetime_representation
+
+
+@pytest.fixture(autouse=True)
+def disable_celery(mocker):
+    delay_patch = mocker.patch("celery.app.task.Task.delay", return_value=1)
+    apply_async_patch = mocker.patch(
+        "celery.app.task.Task.apply_async", return_value=1
+    )
+
+    yield
+
+    mocker.stop(delay_patch)
+    mocker.stop(apply_async_patch)

@@ -60,6 +60,10 @@ services:
     <<: *app
     entrypoint: ./entrypoints/entrypoint-wsgi.sh
 
+  celery-worker:
+    <<: *app
+    entrypoint: ./entrypoints/entrypoint-celery-worker.sh
+
   redis:
     image: redis:7.0.12
     healthcheck:
