@@ -53,8 +53,7 @@ services:
     restart: unless-stopped
     networks:
       - frontend
-      - backend_redis
-      - backend_db
+      - backend
 
   django-wsgi:
     <<: *app
@@ -76,7 +75,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - backend_redis
+      - backend
 
   db:
     image: postgres:15.2
@@ -91,7 +90,7 @@ services:
       retries: 5
     restart: unless-stopped
     networks:
-      - backend_db
+      - backend
 
 volumes:
   db_data:
@@ -99,5 +98,4 @@ volumes:
 
 networks:
   frontend:
-  backend_redis:
-  backend_db:
+  backend:
