@@ -53,9 +53,9 @@ class TestAuthEndpoints:
         assert response.status_code == 204
 
     def test_register(self, mocker, send_request):
-        from auth.api import views
+        from auth.api.views import auth
 
-        spy = mocker.spy(views, "send_verification_email")
+        spy = mocker.spy(auth, "send_verification_email")
         user = UserFactory.build()
 
         url = reverse("user-register")
@@ -259,9 +259,9 @@ class TestVerificationEndpoints:
     def test_user_request_resend_verification_email(
         self, mocker, send_request
     ):
-        from auth.api import views
+        from auth.api.views import verification
 
-        spy = mocker.spy(views, "send_verification_email")
+        spy = mocker.spy(verification, "send_verification_email")
         user = UserFactory.create(is_verified=False)
         url = reverse("verification-resend-email")
         response = send_request(url, "post", {"username": user.username})
