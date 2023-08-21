@@ -14,3 +14,19 @@ def send_talk_invitation_mail(talk):
     )
 
     send_mail_task.delay(subject, message, [talk.speaker.email])
+
+
+def send_talk_status_mail(talk):
+    action = "approved" if talk.status == "approved" else "rejected"
+    subject = f"Online Events | Talk {action.capitalize()}"
+    message = render_to_string(
+        "talks/status_mail.html",
+        {
+            "organizer_username": talk.event.organizer.username,
+            "speaker_username": talk.speaker.username,
+            "action": action,
+            "talk_title": talk.title,
+        },
+    )
+
+    send_mail_task.delay(subject, message, [talk.event.organizer.email])

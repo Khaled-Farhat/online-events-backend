@@ -89,7 +89,13 @@ class TestTalkEndpoints:
 
     @pytest.mark.parametrize("method", ["put", "patch"])
     @pytest.mark.parametrize("new_status", ["approved", "rejected"])
-    def test_when_update_talk_status(self, method, new_status, send_request):
+    def test_when_update_talk_status(
+        self, method, new_status, send_request, mocker
+    ):
+        from talks import signals
+
+        spy = mocker.spy(signals, "send_talk_status_mail")
+
         talk = TalkFactory.create(
             start=timezone.now() + timezone.timedelta(days=1),
             status="pending",
@@ -99,6 +105,8 @@ class TestTalkEndpoints:
         payload = {"status": new_status}
         response = send_request(url, method, payload, user=talk.speaker)
         assert response.status_code == 200
+
+        spy.assert_called_once_with(talk)
 
     def test_retrieve_stream_key(self, send_request):
         talk = TalkFactory.create(event=EventFactory.create(is_published=True))
