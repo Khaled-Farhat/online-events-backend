@@ -393,8 +393,12 @@ class TestEventEndpoints:
         assert len(response.data) == 3
 
     def test_create_event_talk(
-        self, unpublished_event, send_request, get_talk_representation
+        self, unpublished_event, send_request, get_talk_representation, mocker
     ):
+        from talks import signals
+
+        spy = mocker.spy(signals, "send_talk_invitation_mail")
+
         talk = TalkFactory.build(
             speaker=UserFactory.create(),
             event=unpublished_event,
@@ -416,3 +420,9 @@ class TestEventEndpoints:
         response.data.pop("id")
         assert response.data == expected_response_data
         assert len(Event.objects.all()) == 1
+
+        spy.assert_called_once()
+        talk_arg = spy.call_args[0][0]
+        assert get_talk_representation(
+            talk_arg, include_speaker=True
+        ) == get_talk_representation(talk, include_speaker=True)
