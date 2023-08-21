@@ -16,12 +16,13 @@ from drf_spectacular.utils import (
 )
 from knox.views import LoginView as KnoxLoginView, LogoutView as KnoxLogoutView
 from users.api.serializers import UserSerializer
-from .serializers import (
-    RegisterSerializer,
-    LoginSerializer,
+from .serializers.auth import RegisterSerializer, LoginSerializer
+from .serializers.streaming import (
     StreamSerializer,
     PublishStreamSerializer,
     PlayStreamSerializer,
+)
+from .serializers.verification import (
     VerficationKeySerializer,
     ResendVerficationKeySerializer,
 )
