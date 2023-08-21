@@ -43,3 +43,15 @@ class EventSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context.get("user")
         return Event.objects.create(organizer=user, **validated_data)
+
+
+class ListRetrieveEventSerializer(EventSerializer):
+    is_booked = serializers.SerializerMethodField()
+
+    class Meta(EventSerializer.Meta):
+        fields = EventSerializer.Meta.fields + ["is_booked"]
+
+    def get_is_booked(self, event) -> bool:
+        return event.attendees.filter(
+            pk=self.context.get("user", None).pk
+        ).exists()

@@ -15,7 +15,7 @@ from talks.api.serializers import (
 )
 from ..models import Event
 from .permissions import EventPermission
-from .serializers import EventSerializer
+from .serializers import ListRetrieveEventSerializer, EventSerializer
 
 
 @extend_schema_view(
@@ -49,7 +49,6 @@ from .serializers import EventSerializer
     ),
 )
 class EventViewSet(viewsets.ModelViewSet):
-    serializer_class = EventSerializer
     pagination_class = pagination.LimitOffsetPagination
     permission_classes = [EventPermission]
 
@@ -68,6 +67,12 @@ class EventViewSet(viewsets.ModelViewSet):
             return queryset
         else:
             return Event.objects.all()
+
+    def get_serializer_class(self, *args, **kwargs):
+        if self.action in ["retrieve", "list"]:
+            return ListRetrieveEventSerializer
+        else:
+            return EventSerializer
 
     def get_serializer_context(self):
         context = super().get_serializer_context()

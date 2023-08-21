@@ -220,12 +220,15 @@ class TestEventEndpoints:
 
         assert response.status_code == 200
         assert len(response.data["results"]) == 1
-        assert response.data["results"][0] == get_event_representation(
+
+        expected_response_data = get_event_representation(
             events[2],
             include_id=True,
             include_organizer=True,
             include_picture=True,
         )
+        expected_response_data["is_booked"] = False
+        assert response.data["results"][0] == expected_response_data
 
     def test_create_event(self, send_request, get_event_representation):
         event = EventFactory.build(
@@ -250,26 +253,30 @@ class TestEventEndpoints:
     ):
         url = reverse("event-detail", kwargs={"pk": unpublished_event.pk})
         response = send_request(url, "get", user=unpublished_event.organizer)
-        assert response.status_code == 200
-        assert response.data == get_event_representation(
+        expected_response_data = get_event_representation(
             unpublished_event,
             include_id=True,
             include_organizer=True,
             include_picture=True,
         )
+        expected_response_data["is_booked"] = False
+        assert response.status_code == 200
+        assert response.data == expected_response_data
 
     def test_retrieve_published_event(
         self, published_event, send_request, get_event_representation
     ):
         url = reverse("event-detail", kwargs={"pk": published_event.pk})
         response = send_request(url, "get")
-        assert response.status_code == 200
-        assert response.data == get_event_representation(
+        expected_response_data = get_event_representation(
             published_event,
             include_id=True,
             include_organizer=True,
             include_picture=True,
         )
+        expected_response_data["is_booked"] = False
+        assert response.status_code == 200
+        assert response.data == expected_response_data
 
     def test_update_event(self, send_request, get_event_representation):
         event = EventFactory.create(is_published=False)
