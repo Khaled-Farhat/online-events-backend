@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 from django.utils import timezone
+from tests.events.factories import EventFactory
 from tests.talks.factories import TalkFactory
 from tests.users.factories import UserFactory
 
@@ -76,6 +77,16 @@ class TestTalkEndpoints:
         response = send_request(url, method, payload, user=talk.speaker)
         assert response.status_code == 400
 
+    def test_when_event_is_unpublished_then_retrieve_stream_key_should_fail(
+        self, send_request
+    ):
+        talk = TalkFactory.create(
+            event=EventFactory.create(is_published=False)
+        )
+        url = reverse("talk-retrieve-stream-key", kwargs={"pk": talk.pk})
+        response = send_request(url, "get", user=talk.speaker)
+        assert response.status_code == 403
+
     @pytest.mark.parametrize("method", ["put", "patch"])
     @pytest.mark.parametrize("new_status", ["approved", "rejected"])
     def test_when_update_talk_status(self, method, new_status, send_request):
@@ -90,7 +101,7 @@ class TestTalkEndpoints:
         assert response.status_code == 200
 
     def test_retrieve_stream_key(self, send_request):
-        talk = TalkFactory.create()
+        talk = TalkFactory.create(event=EventFactory.create(is_published=True))
         url = reverse("talk-retrieve-stream-key", kwargs={"pk": talk.pk})
         response = send_request(url, "get", user=talk.speaker)
         assert response.status_code == 200

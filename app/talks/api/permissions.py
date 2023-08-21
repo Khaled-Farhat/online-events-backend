@@ -7,7 +7,7 @@ class TalkPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, talk):
         if view.action == "retrieve_stream_key":
-            return request.user == talk.speaker
+            return request.user == talk.speaker and talk.event.is_published
         elif talk.has_started():
             return False
         elif view.action in [
