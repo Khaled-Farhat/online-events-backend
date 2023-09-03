@@ -26,14 +26,6 @@ from drf_spectacular.views import (
 urlpatterns = (
     [
         path("admin/", admin.site.urls),
-        path(
-            "api/v1/schema/", SpectacularAPIView.as_view(), name="api-schema"
-        ),
-        path(
-            "api/v1/docs/",
-            SpectacularSwaggerView.as_view(url_name="api-schema"),
-            name="api-docs",
-        ),
         path("api/v1/auth/", include("auth.api.urls")),
         path("api/v1/events/", include("events.api.urls")),
         path("api/v1/users/", include("users.api.urls")),
@@ -44,4 +36,14 @@ urlpatterns = (
 )
 
 if settings.DEBUG:
-    urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
+    urlpatterns += [
+        path(
+            "api/v1/schema/", SpectacularAPIView.as_view(), name="api-schema"
+        ),
+        path(
+            "api/v1/docs/",
+            SpectacularSwaggerView.as_view(url_name="api-schema"),
+            name="api-docs",
+        ),
+        path("silk/", include("silk.urls", namespace="silk")),
+    ]
